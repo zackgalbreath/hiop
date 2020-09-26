@@ -150,21 +150,14 @@ endif(HIOP_WITH_KRON_REDUCTION)
 find_package(OpenMP)
 target_link_libraries(hiop_math INTERFACE OpenMP::OpenMP_CXX)
 
-if(NOT DEFINED BLAS_LIBRARIES)
-  find_package(BLAS REQUIRED)
-  target_link_libraries(hiop_math INTERFACE ${BLAS_LIBRARIES})
-  message(STATUS "Found BLAS libraries: ${BLAS_LIBRARIES}")
-endif(NOT DEFINED BLAS_LIBRARIES)
-
-
-set(LAPACK_LIBRARIES "-lgfortran;/usr/lib64/liblapack.so;-lpthread;-lm;-ldl")
-
 if(NOT DEFINED LAPACK_LIBRARIES)
   # in case the toolchain defines them
   find_package(LAPACK REQUIRED)
   target_link_libraries(hiop_math INTERFACE ${LAPACK_LIBRARIES})
   message(STATUS "Found LAPACK libraries: ${LAPACK_LIBRARIES}")
 endif(NOT DEFINED LAPACK_LIBRARIES)
+
+set(LAPACK_LIBRARIES "-lgfortran;/usr/lib64/liblapack.so;-lpthread;-lm;-ldl")
 target_link_libraries(hiop_math INTERFACE ${LAPACK_LIBRARIES})
 message(STATUS "Found LAPACK libraries: ${LAPACK_LIBRARIES}")
 
@@ -174,7 +167,7 @@ message(STATUS "Found LAPACK libraries: ${LAPACK_LIBRARIES}")
 #set(LAPACK_LIBRARIES "-lgfortran;/export/home/petra1/work/installs/xblas-1.0.248/libxblas.a;/home/petra1/work/installs/lapack-3.7.0/libblas.a;/home/petra1/work/installs/lapack-3.7.0/liblapack.a;/home/petra1/work/installs/lapack-3.7.0/liblapack.a;/home/petra1/work/installs/lapack-3.7.0/libblas.a;/export/home/petra1/work/installs/xblas-1.0.248/libxblas.a")
 
 
-# metis needed (5.x needed by umfpack)
+# metis needed (4.x needed by MA57)
 if(NOT HIOP_METIS4_DIR)
     set(HIOP_METIS4_DIR "~/software/METIS_4")
 endif(NOT HIOP_METIS4_DIR)
@@ -196,8 +189,8 @@ if(MA57_LIBRARY)
 endif(MA57_LIBRARY)
 
 if(MA57_LIBRARY AND METIS_LIBRARY)
-    target_link_libraries(hiop_math INTERFACE ${MA57_LIBRARY} ${METIS_LIBRARY})
-    option(HIOP_SPARSE "Build with sparse linear algebra" ON)
+    target_link_libraries(hiop_math INTERFACE ${MA57_LIBRARY} ${METIS_LIBRARY} -lgfortran)
+    set(HIOP_SPARSE ON CACHE BOOL "Build with sparse linear algebra" FORCE)
     message(STATUS "Build with sparse linear algebra")
 endif()
 
