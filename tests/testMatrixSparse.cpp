@@ -150,6 +150,10 @@ int main(int argc, char** argv)
     local_ordinal_type j_offset = M2 + 1;
 
     fail += test.tripletAddMDinvNtransToSymDeMatUTri(mxn_sparse, m2xn_sparse, vec_n, W_dense, i_offset, j_offset);
+  
+    // copy the 1st row of mxn_sparse to the last row.
+    // replace the nonzero index from "nnz-entries_per_row"
+    fail += test.copyRowsFromSrcToDest(m2xn_sparse, mxn_sparse,0, 1, M_global-1, mxn_sparse.numberOfNonzeros()-entries_per_row);
   }
 
   // Test RAJA matrix

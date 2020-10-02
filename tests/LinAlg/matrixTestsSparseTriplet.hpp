@@ -97,6 +97,24 @@ private:
       std::function<real_type(local_ordinal_type)> expect) override;
   virtual local_ordinal_type* numNonzerosPerRow(hiop::hiopMatrixSparse* mat);
   virtual local_ordinal_type* numNonzerosPerCol(hiop::hiopMatrixSparse* mat);
+
+public:
+  virtual int copyRowsFromSrcToDest(hiop::hiopMatrixSparse& src_gen, hiop::hiopMatrixSparse& dist_gen,
+                                         local_ordinal_type rows_src_idx_st, local_ordinal_type n_rows,
+                                         local_ordinal_type rows_dest_idx_st, local_ordinal_type dest_nnz_st
+                                         );
+ /*
+ *   virtual void copyDiagMatrixToSubBlock(const double& src_val, const long long& src_size,
+ *                                         const long long& row_dest_st, const long long& col_dest_st,
+ *                                         const long long& dest_nnz_st
+ *                                                                                                                              );
+ *   virtual void copySubDiagonalEleFromVec(const long long& start_on_dest_diag, const long long& num_elems,
+ *                                          const hiopVector& d_, const long long& start_on_nnz_idx);
+ *
+ *   virtual void copySubDiagonalEleFromConstant(const long long& start_on_dest_diag, const long long& num_elems,
+ *                                               const double& c, const long long& start_on_nnz_idx);
+ */
+
 };
 
 }} // namespace hiop::tests
