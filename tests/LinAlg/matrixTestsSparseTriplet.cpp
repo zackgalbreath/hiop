@@ -83,15 +83,32 @@ real_type MatrixTestsSparseTriplet::getLocalElement(
     local_ordinal_type row,
     local_ordinal_type col)
 {
-  auto mat = dynamic_cast<const hiop::hiopMatrixDense*>(A);
-  
-  if (mat != nullptr)
+  if (A == nullptr) THROW_NULL_DEREF;
+
+  if (auto* mat = dynamic_cast<const hiop::hiopMatrixDense*>(A))
   {
     double** M = mat->local_data();
     return M[row][col];
   }
-
-  else THROW_NULL_DEREF;
+  else if (auto* mat = dynamic_cast<const hiop::hiopMatrixSparseTriplet*>(A))
+  {
+    const local_ordinal_type N = mat->n();
+    const local_ordinal_type M = mat->m();
+    const local_ordinal_type nnz = mat->numberOfNonzeros();
+    const local_ordinal_type* i_row = mat->i_row();
+    const local_ordinal_type* j_col = mat->j_col();
+    const real_type* data = mat->M();
+    for(local_ordinal_type i=0; i<nnz; i++)
+    {
+      if(row == i_row[i] && col == j_col[i])
+      {
+        return data[i];
+      }
+    }
+    return zero;
+  }
+  else
+    assert(false && "Matrix type not supported for this function.");
 }
 
 /// Returns element _i_ of vector _x_.
@@ -212,18 +229,16 @@ int MatrixTestsSparseTriplet::verifyAnswer(
     hiop::hiopMatrix* Amat,
     std::function<real_type(local_ordinal_type, local_ordinal_type)> expect)
 {
-  auto A = dynamic_cast<hiop::hiopMatrixDense*>(Amat);
-  assert(A->get_local_size_n() == A->n() && "Matrix should not be distributed");
-  const local_ordinal_type M = A->get_local_size_m();
-  const local_ordinal_type N = A->get_local_size_n();
-  int fail = 0;
-  for (local_ordinal_type i=0; i<M; i++)
+  if (A = dynamic_cast<hiop::hiopMatrixDense*>(Amat))
   {
-    for (local_ordinal_type j=0; j<N; j++)
+    for (local_ordinal_type i=0; i<M; i++)
     {
-      if (!isEqual(getLocalElement(A, i, j), expect(i, j)))
+      for (local_ordinal_type j=0; j<N; j++)
       {
-        fail++;
+        if (!isEqual(getLocalElement(A, i, j), expect(i, j)))
+        {
+          fail++;
+        }
       }
     }
   }
