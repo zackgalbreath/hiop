@@ -84,10 +84,12 @@ private:
   virtual real_type getLocalElement(const hiop::hiopMatrix *a, local_ordinal_type i, local_ordinal_type j) override;
   virtual real_type getLocalElement(const hiop::hiopVector *x, local_ordinal_type i) override;
   virtual real_type* getMatrixData(hiop::hiopMatrixSparse* a) override;
+  virtual real_type getMatrixData(hiop::hiopMatrixSparse* a, local_ordinal_type i, local_ordinal_type j) override;
   virtual const local_ordinal_type* getRowIndices(const hiop::hiopMatrixSparse* a);
   virtual const local_ordinal_type* getColumnIndices(const hiop::hiopMatrixSparse* a);
   virtual local_ordinal_type getLocalSize(const hiop::hiopVector *x) override;
   virtual int verifyAnswer(hiop::hiopMatrix *A, real_type answer) override;
+  virtual int verifyAnswer(hiop::hiopMatrix* A, local_ordinal_type nnz_st, local_ordinal_type nnz_ed, const double answer) override;
   virtual int verifyAnswer(
       hiop::hiopMatrix *A,
       std::function<real_type(local_ordinal_type, local_ordinal_type)> expect) override;
@@ -98,11 +100,6 @@ private:
   virtual local_ordinal_type* numNonzerosPerRow(hiop::hiopMatrixSparse* mat);
   virtual local_ordinal_type* numNonzerosPerCol(hiop::hiopMatrixSparse* mat);
 
-public:
-  virtual int copyRowsFromSrcToDest(hiop::hiopMatrixSparse& src_gen, hiop::hiopMatrixSparse& dist_gen,
-                                         local_ordinal_type rows_src_idx_st, local_ordinal_type n_rows,
-                                         local_ordinal_type rows_dest_idx_st, local_ordinal_type dest_nnz_st
-                                         );
  /*
  *   virtual void copyDiagMatrixToSubBlock(const double& src_val, const long long& src_size,
  *                                         const long long& row_dest_st, const long long& col_dest_st,
