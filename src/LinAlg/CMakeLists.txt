@@ -14,12 +14,24 @@ set(hiopLinAlg_SRC
 
 # Add interfaces for sparse linear solvers when enabled
 if(HIOP_SPARSE)
-    if(HIOP_USE_COINHSL)
-      set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverIndefSparseMA57.cpp)
-    endif(HIOP_USE_COINHSL)      
-    if(HIOP_USE_STRUMPACK)
-      set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverSparseSTRUMPACK.cpp)
-    endif(HIOP_USE_STRUMPACK)
+  if(HIOP_USE_COINHSL)
+    set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverIndefSparseMA57.cpp)
+  endif(HIOP_USE_COINHSL)      
+  if(HIOP_USE_STRUMPACK)
+    set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverSparseSTRUMPACK.cpp)
+  endif(HIOP_USE_STRUMPACK)
+endif()
+
+if(HIOP_USE_GPU)
+  set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverIndefDenseMagma.cpp)
+  if(HIOP_USE_CUDA)
+    foreach(f hiopVectorRajaPar.cpp 
+              hiopVectorIntRaja.cpp 
+              hiopMatrixRajaDense.cpp 
+              hiopMatrixRajaSparseTriplet.cpp)
+      set_source_files_properties(${f} PROPERTIES LANGUAGE CUDA)
+    endforeach()
+  endif()
 endif()
 
 # Add RAJA/Umpire sources when enabled
@@ -35,10 +47,12 @@ endif()
 # Treat RAJA sources as CUDA (temporary, need more flexible solutions)
 if(HIOP_USE_GPU)
   set(hiopLinAlg_SRC ${hiopLinAlg_SRC} hiopLinSolverIndefDenseMagma.cpp)
-  set_source_files_properties(hiopVectorRajaPar.cpp PROPERTIES LANGUAGE CUDA)
-  set_source_files_properties(hiopVectorIntRaja.cpp PROPERTIES LANGUAGE CUDA)
-  set_source_files_properties(hiopMatrixRajaDense.cpp PROPERTIES LANGUAGE CUDA)
-  set_source_files_properties(hiopMatrixRajaSparseTriplet.cpp PROPERTIES LANGUAGE CUDA)
+  if(HIOP_USE_CUDA)
+    set_source_files_properties(hiopVectorRajaPar.cpp PROPERTIES LANGUAGE CUDA)
+    set_source_files_properties(hiopVectorIntRaja.cpp PROPERTIES LANGUAGE CUDA)
+    set_source_files_properties(hiopMatrixRajaDense.cpp PROPERTIES LANGUAGE CUDA)
+    set_source_files_properties(hiopMatrixRajaSparseTriplet.cpp PROPERTIES LANGUAGE CUDA)
+  endif()
 endif()
 
 # Add interface to UMFPACK when Kron reduction is enabled
@@ -50,9 +64,12 @@ endif()
 add_library(hiopLinAlg OBJECT ${hiopLinAlg_SRC})
 target_link_libraries(hiopLinAlg PUBLIC hiop_math)
 
-# Link linear algebra target to Umpire & RAJA when enabled
 if(HIOP_USE_RAJA)
-  target_link_libraries(hiopLinAlg PUBLIC umpire RAJA OpenMP::OpenMP_CXX)
+  if(HIOP_USE_GPU AND HIOP_USE_HIP)
+    target_link_libraries(hiopLinAlg PUBLIC umpire RAJA)
+  else()
+    target_link_libraries(hiopLinAlg PUBLIC umpire RAJA OpenMP::OpenMP_CXX)
+  endif()
 endif()
 
 # Build Kron reduction app

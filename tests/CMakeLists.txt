@@ -18,7 +18,7 @@ if(HIOP_USE_RAJA)
   set(testMatrixSymSparse_SRC ${testMatrixSymSparse_SRC} LinAlg/matrixTestsRajaSymSparseTriplet.cpp)
 endif()
 
-if(HIOP_USE_GPU)
+if(HIOP_USE_CUDA)
   set_source_files_properties(testVector.cpp LinAlg/vectorTestsRajaPar.cpp PROPERTIES LANGUAGE CUDA)
   set_source_files_properties(testVector.cpp LinAlg/vectorTestsIntRaja.cpp PROPERTIES LANGUAGE CUDA)
   set_source_files_properties(testMatrixDense.cpp LinAlg/matrixTestsRajaDense.cpp PROPERTIES LANGUAGE CUDA)
@@ -28,23 +28,24 @@ endif()
 
 # Build vector test
 add_executable(testVector ${testVector_SRC})
-target_link_libraries(testVector PRIVATE hiop)
 
 # Build matrix test
 add_executable(testMatrixDense ${testMatrix_SRC})
-target_link_libraries(testMatrixDense PRIVATE hiop)
 
 # Build sparse matrix test
 add_executable(testMatrixSparse ${testMatrixSparse_SRC})
-target_link_libraries(testMatrixSparse PRIVATE hiop)
 
 # Build symmetric sparse matrix test
 add_executable(testMatrixSymSparse ${testMatrixSymSparse_SRC})
-target_link_libraries(testMatrixSymSparse PRIVATE hiop)
 
+set(libs hiop)
 if(HIOP_USE_RAJA)
-  target_link_libraries(testVector PRIVATE umpire RAJA OpenMP::OpenMP_CXX)
-  target_link_libraries(testMatrixDense PRIVATE umpire RAJA OpenMP::OpenMP_CXX)
-  target_link_libraries(testMatrixSparse PRIVATE umpire RAJA OpenMP::OpenMP_CXX)
-  target_link_libraries(testMatrixSymSparse PRIVATE umpire RAJA OpenMP::OpenMP_CXX)
+  list(APPEND libs umpire RAJA)
+  if(HIOP_USE_GPU AND NOT HIOP_USE_HIP)
+    list(APPEND libs OpenMP::OpenMP_CXX)
+  endif()
 endif()
+
+foreach(target testVector testMatrixDense testMatrixSparse testMatrixSymSparse)
+  target_link_libraries(${target} PRIVATE ${libs})
+endforeach()
