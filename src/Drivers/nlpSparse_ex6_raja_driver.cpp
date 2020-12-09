@@ -1,9 +1,13 @@
-#include "nlpSparse_ex6.hpp"
+#include "nlpSparse_ex6_raja.hpp"
 #include "hiopNlpFormulation.hpp"
 #include "hiopAlgFilterIPM.hpp"
 
 #include <cstdlib>
 #include <string>
+
+#include <umpire/Allocator.hpp>
+#include <umpire/ResourceManager.hpp>
+#include <RAJA/RAJA.hpp>
 
 using namespace hiop;
 
@@ -62,32 +66,56 @@ int main(int argc, char **argv)
   int rank=0;
 #ifdef HIOP_USE_MPI
   MPI_Init(&argc, &argv);
-  int ierr = MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-  assert(MPI_SUCCESS==ierr);
-  //if(0==rank) printf("Support for MPI is enabled\n");
+  int comm_size;
+  int ierr = MPI_Comm_size(MPI_COMM_WORLD, &comm_size); assert(MPI_SUCCESS==ierr);
+  //int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank); assert(MPI_SUCCESS==ierr);
+  if(comm_size != 1) {
+    printf("[error] driver detected more than one rank but the driver should be run "
+	   "in serial only; will exit\n");
+    MPI_Finalize();
+    return 1;
+  }
 #endif
-  bool selfCheck; long long n;
+
+  std::string mem_space = "um";
+  hiop::LinearAlgebraFactory::set_mem_space(mem_space);
+
+  bool selfCheck; 
+  long long n;
   if(!parse_arguments(argc, argv, n, selfCheck)) { usage(argv[0]); return 1;}
 
-  Ex6 nlp_interface(n);
+  Ex6 nlp_interface(n,mem_space);
   hiopNlpSparse nlp(nlp_interface);
-  nlp.options->SetStringValue("compute_mode", "cpu");
-//  nlp.options->SetStringValue("compute_mode", "hybrid");
+  
+  nlp.options->SetStringValue("dualsUpdateType", "linear");
+  nlp.options->SetStringValue("dualsInitialization", "zero");
+  nlp.options->SetStringValue("fixed_var", "relax");
+  nlp.options->SetStringValue("Hessian", "analytical_exact");
+
+  nlp.options->SetStringValue("mem_space", mem_space.c_str());
+  nlp.options->SetStringValue("compute_mode", "hybrid");  
   nlp.options->SetStringValue("KKTLinsys", "xdycyd");
 //  nlp.options->SetStringValue("KKTLinsys", "full");
 //  nlp.options->SetStringValue("write_kkt", "yes");
 
+  nlp.options->SetNumericValue("mu0", 1e-1);
+  nlp.options->SetNumericValue("tolerance", 1e-5);
 //  nlp.options->SetIntegerValue("max_iter", 100);
 //  nlp.options->SetNumericValue("kappa1", 1e-8);
 //  nlp.options->SetNumericValue("kappa2", 1e-8);
 
   hiopAlgFilterIPMNewton solver(&nlp);
+  std::cout<<"a\n";  
   hiopSolveStatus status = solver.run();
 
   double obj_value = solver.getObjective();
 
-  if(status<0) {
-    if(rank==0) printf("solver returned negative solve status: %d (with objective is %18.12e)\n", status, obj_value);
+  if(status<0)
+  {
+    if(rank==0)
+    {
+      printf("solver returned negative solve status: %d (with objective is %18.12e)\n", status, obj_value);
+    } 
     return -1;
   }
 
@@ -104,7 +132,6 @@ int main(int argc, char **argv)
 #ifdef HIOP_USE_MPI
   MPI_Finalize();
 #endif
-
 
   return 0;
 }

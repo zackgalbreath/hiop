@@ -449,24 +449,25 @@ public:
   virtual hiopMatrix* alloc_Jac_c()
   {
     assert(n_vars == m_nx);
-    return new hiopMatrixSparseTriplet(n_cons_eq, m_nx, m_nnz_sparse_Jaceq);
+    return LinearAlgebraFactory::createMatrixSparse(n_cons_eq, m_nx, m_nnz_sparse_Jaceq);
   }
   virtual hiopMatrix* alloc_Jac_d()
   {
     assert(n_vars == m_nx);
-    return new hiopMatrixSparseTriplet(n_cons_ineq, m_nx, m_nnz_sparse_Jacineq);
+    return LinearAlgebraFactory::createMatrixSparse(n_cons_ineq, m_nx, m_nnz_sparse_Jacineq);
   }
   virtual hiopMatrix* alloc_Jac_cons()
   {
     assert(n_vars == m_nx);
-    return new hiopMatrixSparseTriplet(n_cons, m_nx, m_nnz_sparse_Jaceq + m_nnz_sparse_Jacineq);
+    return LinearAlgebraFactory::createMatrixSparse(n_cons, m_nx, m_nnz_sparse_Jaceq + m_nnz_sparse_Jacineq);
   }
   virtual hiopMatrix* alloc_Hess_Lagr()
   {
-  assert(n_vars == m_nx);
-    return new hiopMatrixSymSparseTriplet(m_nx, m_nnz_sparse_Hess_Lagr);
+    assert(n_vars == m_nx);
+    return LinearAlgebraFactory::createMatrixSymSparse(m_nx, m_nnz_sparse_Hess_Lagr);
   }
   virtual long long nx() const { return m_nx; }
+
 private:
   hiopInterfaceSparse& interface;
   int m_nx;

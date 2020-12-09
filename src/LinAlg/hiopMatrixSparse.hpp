@@ -56,6 +56,7 @@
 #include "hiopMatrixDense.hpp"
 
 #include <cassert>
+#include <unordered_map>
 
 namespace hiop
 {
@@ -111,6 +112,18 @@ public:
     assert(false && "not needed / implemented");
   }
 
+  virtual void copySubDiagonalFrom(const long long& start_on_dest_diag, const long long& num_elems,
+                                      const hiopVector& d_, const long long& start_on_nnz_idx, double scal=1.0)
+  {
+    assert(false && "not needed / implemented");
+  }
+  
+  virtual void setSubDiagonalTo(const long long& start_on_dest_diag, const long long& num_elems,
+                                       const double& c, const long long& start_on_nnz_idx)
+  {
+    assert(false && "not needed / implemented");
+  }
+                                         
   virtual void addMatrix(double alpha, const hiopMatrix& X) = 0;
 
   /* block of W += alpha*transpose(this) */
@@ -158,7 +171,35 @@ public:
                                          const long long& rows_src_idx_st, const long long& n_rows,
                                          const long long& rows_dest_idx_st, const long long& dest_nnz_st
                                          ) = 0;
+  
+  virtual void copySubmatrixFrom(const hiopMatrix& src_gen,
+                                   const long long& dest_row_st, const long long& dest_col_st,
+                                   const long long& dest_nnz_st)
+  {
+    assert(false && "not needed / implemented");
+  }
+    
+  virtual void copySubmatrixFromTrans(const hiopMatrix& src_gen,
+                                   const long long& dest_row_st, const long long& dest_col_st,
+                                   const long long& dest_nnz_st)
+  {
+    assert(false && "not needed / implemented");
+  }
 
+  virtual void setSubmatrixToConstantDiag_w_colpattern(const double& scalar,
+                                   const long long& dest_row_st, const long long& dest_col_st,
+                                   const long long& dest_nnz_st, const int &nnz_to_copy, const hiopVector& ix)
+  {
+    assert(false && "not needed / implemented");
+  }
+
+  virtual void setSubmatrixToConstantDiag_w_rowpattern(const double& scalar,
+                                   const long long& dest_row_st, const long long& dest_col_st,
+                                   const long long& dest_nnz_st, const int &nnz_to_copy, const hiopVector& ix)
+  {
+    assert(false && "not needed / implemented");
+  }
+                                   
   /**
    * @brief Copy a diagonal matrix to destination.
    * This diagonal matrix is 'src_val'*identity matrix with size 'src_size'x'src_size'.
@@ -169,6 +210,14 @@ public:
                                         const long long& row_dest_st, const long long& col_dest_st,
                                         const long long& dest_nnz_st, const int &nnz_to_copy) = 0;
 
+  virtual void copyDiagMatrixToSubblock_w_pattern(const hiopVector& x,
+                                                  const long long& dest_row_st, const long long& dest_col_st,
+                                                  const long long& dest_nnz_st, const int &nnz_to_copy,
+                                                  const hiopVector& pattern)
+  {
+    assert(false && "not needed / implemented");
+  }
+                                                   
   virtual double max_abs_value() = 0;
 
   virtual bool isfinite() const = 0;
@@ -184,17 +233,24 @@ public:
   virtual void startingAtAddSubDiagonalToStartingAt(int diag_src_start, const double& alpha,
 					    hiopVector& vec_dest, int vec_start, int num_elems=-1) const = 0;
 
+  virtual void convertToCSR(int &csr_nnz, int **csr_kRowPtr, int **csr_jCol, double **csr_kVal,
+                            int **index_covert_CSR2Triplet, int **index_covert_extra_Diag2CSR,
+                            std::unordered_map<int,int> &extra_diag_nnz_map)
+  {
+    assert(false && "not needed / implemented");
+  }
+  
+  virtual long long numberOfOffDiagNonzeros() = 0;
 
   virtual hiopMatrixSparse* alloc_clone() const = 0;
   virtual hiopMatrixSparse* new_copy() const = 0;
-
+  
   virtual int* i_row() = 0;
   virtual int* j_col() = 0;
   virtual double* M()  = 0;
   virtual const int* i_row() const = 0;
   virtual const int* j_col() const = 0;
   virtual const double* M()  const = 0;
-  virtual long long numberOfOffDiagNonzeros() = 0;
 
   inline long long m() const
   {

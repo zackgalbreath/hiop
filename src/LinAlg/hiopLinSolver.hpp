@@ -127,11 +127,11 @@ public:
   hiopLinSolverIndefSparse(int n, int nnz, hiopNlpFormulation* nlp);
   virtual ~hiopLinSolverIndefSparse();
 
-  inline hiopMatrixSymSparseTriplet& sysMatrix() { return M; }
+  hiopMatrixSparse& sysMatrix();
 protected:
-  hiopMatrixSymSparseTriplet M;
+  hiopMatrixSparse* M_;
 protected:
-  hiopLinSolverIndefSparse() : M(0,0) { assert(false); }
+  hiopLinSolverIndefSparse();
 };
 
 /** Base class for non-symmetric Sparse Solvers */
@@ -141,11 +141,11 @@ public:
   hiopLinSolverNonSymSparse(int n, int nnz, hiopNlpFormulation* nlp);
   virtual ~hiopLinSolverNonSymSparse();
 
-  inline hiopMatrixSparseTriplet& sysMatrix() { return M; }
+  hiopMatrixSparse& sysMatrix();
 protected:
-  hiopMatrixSparseTriplet M;
+  hiopMatrixSparse* M_;
 protected:
-  hiopLinSolverNonSymSparse() : M(0,0,0) { assert(false); }
+  hiopLinSolverNonSymSparse();
 };
 
 } //end namespace

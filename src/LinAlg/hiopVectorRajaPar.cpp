@@ -415,34 +415,54 @@ void hiopVectorRajaPar::copyToStarting(hiopVector& vec, int start_index/*_in_des
   rm.copy(v.data_dev_ + start_index, this->data_dev_, this->n_local_*sizeof(double));
 }
 
-void hiopVectorRajaPar::copyToStartingAt_w_pattern(hiopVector& vec, int start_index/*_in_dest*/, const hiopVector& select)
+void hiopVectorRajaPar::copyToStartingAt_w_pattern(hiopVector& destination, int start_index_dest, const hiopVector& select_src)
 {
-#if 0  
+#ifndef HIOP_NDEBUG
+  assert(n_local_==n_ && "only for local/non-distributed vectors");
+#endif
+
   if(n_local_ == 0)
     return;
- 
-  hiopVectorRajaPar& v = dynamic_cast<hiopVectorRajaPar&>(vec);
-  const hiopVectorRajaPar& ix= dynamic_cast<const hiopVectorRajaPar&>(select);
-  assert(n_local_ == ix.n_local_);
-  
-  int find_nnz = 0;
+
+  hiopVectorRajaPar& dest = dynamic_cast<hiopVectorRajaPar&>(destination);
+  const hiopVectorRajaPar& ix_src = dynamic_cast<const hiopVectorRajaPar&>(select_src);
+  assert(n_local_ == ix_src.n_local_);
+
   double* dd = data_dev_;
-  double* vd = v.data_dev_;
-  double* id = ix.data_dev_;
-  
-  RAJA::ReduceSum< hiop_raja_reduce, double > sum(zero);
+  double* vd = dest.data_dev_;
+  double* id = ix_src.data_dev_;
+
+  auto& resmgr = umpire::ResourceManager::getInstance();
+  umpire::Allocator devalloc  = resmgr.getAllocator(mem_space_);
+  umpire::Allocator hostalloc  = resmgr.getAllocator("HOST");
+
+  int* cusum_nnz = static_cast<int *>(devalloc.allocate(sizeof(int) * (n_local_ + 1)));
+
   RAJA::forall< hiop_raja_exec >( RAJA::RangeSegment(0, n_local_),
-    [&](RAJA::Index_type i)
+    RAJA_LAMBDA(RAJA::Index_type i)
     {
+      int find_nnz = 0;
       assert(id[i] == zero || id[i] == one);
-      if(id[i] == one){
-        vd[start_index+find_nnz] = dd[i];
+      if(id[i] == one)
+      {
         find_nnz++;
       }
+      cusum_nnz[i] = find_nnz;
     });
-#else
-  assert(false && "not needed / implemented");
-#endif    
+
+  // get the cumulative sum. the last value should be the total number of nonzeros.
+  RAJA::exclusive_scan_inplace<hiop_raja_exec>(cusum_nnz, cusum_nnz + n_local_ + 1, RAJA::operators::plus<int>{});
+
+  RAJA::forall<hiop_raja_exec>(RAJA::RangeSegment(0, n_local_),
+      RAJA_LAMBDA(RAJA::Index_type i)
+      {
+        if(cusum_nnz[i+1] == cusum_nnz[i]+1)
+        {
+          vd[start_index_dest + cusum_nnz[i]] = dd[i];
+        }
+      });
+
+  devalloc.deallocate(cusum_nnz);  
 }
 
 /**
@@ -500,44 +520,67 @@ void hiopVectorRajaPar::startingAtCopyToStartingAt(
   rm.copy(dest.data_dev_ + start_idx_dest, this->data_dev_ + start_idx_in_src, num_elems*sizeof(double));
 }
 
-void hiopVectorRajaPar::
-startingAtCopyToStartingAt_w_pattern(int start_idx_in_src, hiopVector& destination, int start_idx_dest, const hiopVector& selec_dest, int num_elems/*=-1*/) const
+void hiopVectorRajaPar::startingAtCopyToStartingAt_w_pattern(int start_idx_in_src, hiopVector& destination, 
+                                                             int start_idx_dest, const hiopVector& selec_dest, int num_elems/*=-1*/) const
 {
-#if 0  
+#ifndef HIOP_DEEPCHECKS
+  assert(n_local_==n_ && "only for local/non-distributed vectors");
+#endif
+
   hiopVectorRajaPar& dest = dynamic_cast<hiopVectorRajaPar&>(destination);
-  const hiopVectorRajaPar& ix = dynamic_cast<const hiopVectorRajaPar&>(selec_dest);
-    
-  assert(start_idx_in_src >= 0 && start_idx_in_src <= this->n_local_);
+  const hiopVectorRajaPar& ix_dest = dynamic_cast<const hiopVectorRajaPar&>(selec_dest);
+  assert(start_idx_in_src >= 0 && start_idx_in_src <= n_local_);
   assert(start_idx_dest   >= 0 && start_idx_dest   <= dest.n_local_);
-    
+  assert(dest.n_local_ == ix_dest.n_local_);
+
   if(num_elems<0)
   {
     num_elems = std::min(this->n_local_ - start_idx_in_src, dest.n_local_ - start_idx_dest);
   }
   else
   {
-    assert(num_elems+start_idx_in_src <= this->n_local_);
+    assert(num_elems+start_idx_in_src <= n_local_);
     assert(num_elems+start_idx_dest   <= dest.n_local_);
     //make sure everything stays within bounds (in release)
     num_elems = std::min(num_elems, (int)this->n_local_-start_idx_in_src);
     num_elems = std::min(num_elems, (int)dest.n_local_-start_idx_dest);
   }
-      
-  int find_nnz = 0;
+
   double* dd = data_dev_;
   double* vd = dest.data_dev_;
-  double* id = ix.data_dev_;
+  double* id = ix_dest.data_dev_;
 
-  RAJA::forall< hiop_raja_exec >( RAJA::RangeSegment(0, n_local_),
-    [&](RAJA::Index_type i)
+  auto& resmgr = umpire::ResourceManager::getInstance();
+  umpire::Allocator devalloc  = resmgr.getAllocator(mem_space_);
+  umpire::Allocator hostalloc  = resmgr.getAllocator("HOST");
+
+  int* cusum_nnz = static_cast<int *>(devalloc.allocate(sizeof(int) * (dest.n_local_ + 1)));
+
+  RAJA::forall< hiop_raja_exec >( RAJA::RangeSegment(0, dest.n_local_),
+    RAJA_LAMBDA(RAJA::Index_type i)
     {
+      int find_nnz = 0;
       assert(id[i] == zero || id[i] == one);
-      if(id[i] == one && find_nnz<num_elems)
-        vd[start_idx_dest+find_nnz] = dd[ start_idx_in_src + (find_nnz++)];
+      if(id[i] == one)
+      {
+        find_nnz++;
+      }
+      cusum_nnz[i] = find_nnz;
     });
-#else
-  assert(false && "not needed / implemented");
-#endif
+
+  // get the cumulative sum. the last value should be the total number of nonzeros.
+  RAJA::exclusive_scan_inplace<hiop_raja_exec>(cusum_nnz, cusum_nnz + dest.n_local_ + 1, RAJA::operators::plus<int>{});
+  
+  RAJA::forall<hiop_raja_exec>(RAJA::RangeSegment(start_idx_dest, dest.n_local_),
+      RAJA_LAMBDA(RAJA::Index_type i)
+      {
+        if(cusum_nnz[i+1] == cusum_nnz[i]+1)
+        {
+          vd[i] = dd[start_idx_in_src + cusum_nnz[i]];
+        }
+      });
+
+  devalloc.deallocate(cusum_nnz);
 }
  
  /**

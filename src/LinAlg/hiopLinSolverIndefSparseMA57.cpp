@@ -65,15 +65,15 @@ namespace hiop
 
   void hiopLinSolverIndefSparseMA57::firstCall()
   {
-    assert(m_n==M.n() && M.n()==M.m());
-    assert(m_nnz==M.numberOfNonzeros());
+    assert(m_n==M_->n() && M_->n()==M_->m());
+    assert(m_nnz==M_->numberOfNonzeros());
     assert(m_n>0);
 
     m_irowM = new int[m_nnz];
     m_jcolM = new int[m_nnz];
     for(int k=0;k<m_nnz;k++){
-      m_irowM[k] = M.i_row()[k]+1;
-      m_jcolM[k] = M.j_col()[k]+1;
+      m_irowM[k] = M_->i_row()[k]+1;
+      m_jcolM[k] = M_->j_col()[k]+1;
     }
 
     m_lkeep = ( m_nnz > m_n ) ? (5 * m_n + 2 *m_nnz + 42) : (6 * m_n + m_nnz + 42);
@@ -96,8 +96,8 @@ namespace hiop
 
   int hiopLinSolverIndefSparseMA57::matrixChanged()
   {
-    assert(m_n==M.n() && M.n()==M.m());
-    assert(m_nnz==M.numberOfNonzeros());
+    assert(m_n==M_->n() && M_->n()==M_->m());
+    assert(m_nnz==M_->numberOfNonzeros());
     assert(m_n>0);
 
     nlp_->runStats.linsolv.tmFactTime.start();
@@ -108,7 +108,7 @@ namespace hiop
     int num_tries{0};
 
     do {
-      FNAME(ma57bd)( &m_n, &m_nnz, M.M(), m_fact, &m_lfact, m_ifact,
+      FNAME(ma57bd)( &m_n, &m_nnz, M_->M(), m_fact, &m_lfact, m_ifact,
 	     &m_lifact, &m_lkeep, m_keep, m_iwork, m_icntl, m_cntl, m_info, m_rinfo );
 
       switch( m_info[0] ) {
@@ -171,10 +171,10 @@ namespace hiop
 
   bool hiopLinSolverIndefSparseMA57::solve ( hiopVector& x_ )
   {
-    assert(m_n==M.n() && M.n()==M.m());
-    assert(m_nnz==M.numberOfNonzeros());
+    assert(m_n==M_->n() && M_->n()==M_->m());
+    assert(m_nnz==M_->numberOfNonzeros());
     assert(m_n>0);
-    assert(x_.get_size()==M.n());
+    assert(x_.get_size()==M_->n());
 
     nlp_->runStats.linsolv.tmTriuSolves.start();
 
@@ -193,7 +193,7 @@ namespace hiop
 //    FNAME(ma57cd)( &job, &m_n, m_fact, &m_lfact, m_ifact, &m_lifact,
 //    	   &one, drhs, &m_n, m_dwork, &m_n, m_iwork, m_icntl, m_info );
 
-    FNAME(ma57dd)( &job, &m_n, &m_nnz, M.M(), m_irowM, m_jcolM,
+    FNAME(ma57dd)( &job, &m_n, &m_nnz, M_->M(), m_irowM, m_jcolM,
         m_fact, &m_lfact, m_ifact, &m_lifact, drhs, dx,
         dresid, m_dwork, m_iwork, m_icntl, m_cntl, m_info, m_rinfo );
 

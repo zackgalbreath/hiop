@@ -115,7 +115,7 @@ namespace hiop
   
     //write a sparse triplet matrix in the iajaaa format; zero elements are not written
     //counter specifies the suffix in the filename, essentially is the iteration #
-    void writeMatToFile(hiopMatrixSparseTriplet& Msys, const int& counter)
+    void writeMatToFile(hiopMatrixSparse& Msys, const int& counter)
     {
 #ifdef HIOP_USE_MPI
       if(_master_rank>=0 && _master_rank != _nlp->get_rank()) return;

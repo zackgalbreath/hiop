@@ -1229,9 +1229,9 @@ bool hiopNlpSparse::eval_Jac_c_d_interface_impl(hiopVector& x,
                                            hiopMatrix& Jac_c,
                                            hiopMatrix& Jac_d)
 {
-  hiopMatrixSparseTriplet* pJac_c = dynamic_cast<hiopMatrixSparseTriplet*>(&Jac_c);
-  hiopMatrixSparseTriplet* pJac_d = dynamic_cast<hiopMatrixSparseTriplet*>(&Jac_d);
-  hiopMatrixSparseTriplet* cons_Jac = dynamic_cast<hiopMatrixSparseTriplet*>(cons_Jac_);
+  hiopMatrixSparse* pJac_c = dynamic_cast<hiopMatrixSparse*>(&Jac_c);
+  hiopMatrixSparse* pJac_d = dynamic_cast<hiopMatrixSparse*>(&Jac_d);
+  hiopMatrixSparse* cons_Jac = dynamic_cast<hiopMatrixSparse*>(cons_Jac_);
   if(pJac_c && pJac_d) {
     assert(cons_Jac);
     if(NULL == cons_Jac)
@@ -1267,7 +1267,7 @@ bool hiopNlpSparse::eval_Hess_Lagr(const hiopVector&  x, bool new_x, const doubl
                             const double* lambda_eq, const double* lambda_ineq, bool new_lambdas,
                             hiopMatrix& Hess_L)
 {
-  hiopMatrixSparseTriplet* pHessL = dynamic_cast<hiopMatrixSparseTriplet*>(&Hess_L);
+  hiopMatrixSparse* pHessL = dynamic_cast<hiopMatrixSparse*>(&Hess_L);
   assert(pHessL);
 
   runStats.tmEvalHessL.start();

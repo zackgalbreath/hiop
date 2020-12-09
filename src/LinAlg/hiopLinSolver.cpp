@@ -90,23 +90,53 @@ namespace hiop {
   }
 
   hiopLinSolverIndefSparse::hiopLinSolverIndefSparse(int n, int nnz, hiopNlpFormulation* nlp)
-    : M(n,nnz)
+    : M_(LinearAlgebraFactory::createMatrixSymSparse(n,nnz))
   {
     nlp_ = nlp;
     perf_report_ = "on"==hiop::tolower(nlp->options->GetString("time_kkt"));
   }
+  
+  /// Default constructor is protected and should fail when called
+  hiopLinSolverIndefSparse::hiopLinSolverIndefSparse()
+    : M_(LinearAlgebraFactory::createMatrixSymSparse(0,0))
+  {
+    assert(false);
+  }  
+  
   hiopLinSolverIndefSparse::~hiopLinSolverIndefSparse()
   {
+    delete M_;
   }
 
+  /// Method to return reference to the system matrix
+  hiopMatrixSparse& hiopLinSolverIndefSparse::sysMatrix()
+  {
+    return *M_;
+  }
+    
   hiopLinSolverNonSymSparse::hiopLinSolverNonSymSparse(int n, int nnz, hiopNlpFormulation* nlp)
-    : M(n,n,nnz)
+    : M_(LinearAlgebraFactory::createMatrixSparse(n,n,nnz))
   {
     nlp_ = nlp;
     perf_report_ = "on"==hiop::tolower(nlp->options->GetString("time_kkt"));
   }
+  
+  /// Default constructor is protected and should fail when called
+  hiopLinSolverNonSymSparse::hiopLinSolverNonSymSparse()
+    : M_(LinearAlgebraFactory::createMatrixSparse(0,0,0))
+  {
+    assert(false);
+  }  
+    
   hiopLinSolverNonSymSparse::~hiopLinSolverNonSymSparse()
   {
+    delete M_;
   }
 
+  /// Method to return reference to the system matrix
+  hiopMatrixSparse& hiopLinSolverNonSymSparse::sysMatrix()
+  {
+    return *M_;
+  }
+    
 } // namespace hiop

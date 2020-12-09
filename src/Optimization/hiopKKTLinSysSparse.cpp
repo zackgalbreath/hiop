@@ -120,7 +120,7 @@ namespace hiop
     Dx_->axdzpy_w_pattern(1.0, *iter->zu, *iter->sxu, nlp_->get_ixu());
     nlp_->log->write("Dx in KKT", *Dx_, hovMatrices);
 
-    hiopMatrixSparseTriplet& Msys = linSys_->sysMatrix();
+    hiopMatrixSparse& Msys = linSys_->sysMatrix();
     if(perf_report_) {
       nlp_->log->printf(hovSummary,
 			"KKT_Sparse_XYcYd linsys: Low-level linear system size: %d\n",
@@ -427,16 +427,16 @@ namespace hiop
     nlp_->runStats.kkt.tmUpdateInit.start();
 
     iter_ = iter;
-    grad_f_ = dynamic_cast<const hiopVectorPar*>(grad_f);
+    grad_f_ = grad_f;
     Jac_c_ = Jac_c; Jac_d_ = Jac_d; Hess_=Hess;
 
-    HessSp_ = dynamic_cast<hiopMatrixSymSparseTriplet*>(Hess);
+    HessSp_ = dynamic_cast<hiopMatrixSparse*>(Hess);
     if(!HessSp_) { assert(false); return false; }
 
-    Jac_cSp_ = dynamic_cast<const hiopMatrixSparseTriplet*>(Jac_c);
+    Jac_cSp_ = dynamic_cast<const hiopMatrixSparse*>(Jac_c);
     if(!Jac_cSp_) { assert(false); return false; }
 
-    Jac_dSp_ = dynamic_cast<const hiopMatrixSparseTriplet*>(Jac_d);
+    Jac_dSp_ = dynamic_cast<const hiopMatrixSparse*>(Jac_d);
     if(!Jac_dSp_) { assert(false); return false; }
 
     long long nx = HessSp_->n(), nd=Jac_dSp_->m(), neq=Jac_cSp_->m(), nineq=Jac_dSp_->m();
@@ -461,7 +461,7 @@ namespace hiop
     Dd_->axdzpy_w_pattern(1.0, *iter_->vu, *iter_->sdu, nlp_->get_idu());
     nlp_->log->write("Dd in KKT", *Dd_, hovMatrices);
 
-    hiopMatrixSparseTriplet& Msys = linSys_->sysMatrix();
+    hiopMatrixSparse& Msys = linSys_->sysMatrix();
     if(perf_report_) {
       nlp_->log->printf(hovSummary,
 			"KKT_Sparse_XDYcYd linsys: Low-level linear system size: %d\n",
@@ -821,7 +821,7 @@ namespace hiop
 
     linSys_ = determineAndCreateLinsys(n, required_num_neg_eig, nnz);
 
-    hiopMatrixSparseTriplet& Msys = linSys_->sysMatrix();
+    hiopMatrixSparse& Msys = linSys_->sysMatrix();
     if(perf_report_) {
       nlp_->log->printf(hovSummary,
 			"KKT_Sparse_Full linsys: Full KKT linear system size: %d\n",

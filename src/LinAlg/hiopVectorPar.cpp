@@ -197,6 +197,10 @@ void hiopVectorPar::copyToStarting(hiopVector& v_, int start_index/*_in_dest*/)
 
 void hiopVectorPar::copyToStartingAt_w_pattern(hiopVector& v_, int start_index/*_in_dest*/, const hiopVector& select)
 {
+#ifndef HIOP_NDEBUG
+  assert(n_local_==n_ && "only for local/non-distributed vectors");
+#endif
+
   const hiopVectorPar& v = dynamic_cast<const hiopVectorPar&>(v_);
   const hiopVectorPar& ix = dynamic_cast<const hiopVectorPar&>(select);
   assert(n_local_ == ix.n_local_);
@@ -239,13 +243,19 @@ startingAtCopyToStartingAt(int start_idx_in_src, hiopVector& dest_, int start_id
   memcpy(dest.data_+start_idx_dest, this->data_+start_idx_in_src, num_elems*sizeof(double));
 }
 
-void hiopVectorPar::
-startingAtCopyToStartingAt_w_pattern(int start_idx_in_src, hiopVector& dest_, int start_idx_dest, const hiopVector& selec_dest, int num_elems/*=-1*/) const
+void hiopVectorPar::startingAtCopyToStartingAt_w_pattern(int start_idx_in_src, hiopVector& dest_, 
+                                                         int start_idx_dest, const hiopVector& selec_dest, int num_elems/*=-1*/) const
 {
-  assert(start_idx_in_src>=0 && start_idx_in_src<=n_local_);
-  const hiopVectorPar& dest = dynamic_cast<hiopVectorPar&>(dest_);
+#ifndef HIOP_DEEPCHECKS
+  assert(n_local_==n_ && "only for local/non-distributed vectors");
+#endif 
+  
+  hiopVectorPar& dest = dynamic_cast<hiopVectorPar&>(dest_);
   const hiopVectorPar& ix = dynamic_cast<const hiopVectorPar&>(selec_dest);
+  assert(start_idx_in_src>=0 && start_idx_in_src<=n_local_);
   assert(start_idx_dest>=0 && start_idx_dest<=dest.n_local_);
+  assert(dest.n_local_ == ix.n_local_);
+  
   if(num_elems<0) {
     num_elems = std::min(n_local_-start_idx_in_src, dest.n_local_-start_idx_dest);
   } else {

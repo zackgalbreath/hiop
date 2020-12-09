@@ -35,6 +35,14 @@ if(HIOP_SPARSE)
 
     add_executable(nlpSparse_ex7.exe nlpSparse_ex7.cpp nlpSparse_ex7_driver.cpp)
     target_link_libraries(nlpSparse_ex7.exe hiop)
+    
+    if(HIOP_USE_RAJA)
+      if(HIOP_USE_GPU)
+        set_source_files_properties(nlpSparse_ex6_raja.cpp nlpSparse_ex6_raja_driver.cpp PROPERTIES LANGUAGE CUDA)
+      endif()
+      add_executable(nlpSparse_ex6_raja.exe nlpSparse_ex6_raja_driver.cpp nlpSparse_ex6_raja.cpp)
+      target_link_libraries(nlpSparse_ex6_raja.exe hiop)
+    endif()
 endif()
 
 if(HIOP_BUILD_SHARED AND NOT HIOP_USE_GPU)
