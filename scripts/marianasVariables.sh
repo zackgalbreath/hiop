@@ -35,6 +35,6 @@ export MY_RAJA_DIR=$PROJ_DIR/$MY_CLUSTER/raja
 export MY_UMPIRE_DIR=$PROJ_DIR/$MY_CLUSTER/umpire
 export MY_UMFPACK_DIR=$PROJ_DIR/$MY_CLUSTER/suitesparse
 export MY_METIS_DIR=$APPS_DIR/metis/$MY_METIS_VERSION
-export MY_HIOP_MAGMA_DIR=$APPS_DIR/magma/2.5.2/cuda10.2
+export MY_HIOP_MAGMA_DIR=$PROJ_DIR/spack-install/linux-centos7-broadwell/gcc-7.3.0/magma/2.5.4-bwwsa/
 export MY_COINHSL_DIR=$PROJ_DIR/$MY_CLUSTER/ipopt
 EXTRA_CMAKE_ARGS="$EXTRA_CMAKE_ARGS -DBLAS_LIBRARIES=/usr/lib64/libopenblas.so"

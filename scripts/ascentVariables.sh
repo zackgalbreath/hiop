@@ -3,6 +3,7 @@ if [ ! -v BUILDDIR ]; then
   echo BUILDDIR is not set! Your paths may be misconfigured.
 fi
 
+source $PROJWORK/csc359/src/spack/share/spack/setup-env.sh
 module purge
 module load cuda/11
 module use /gpfs/wolf/proj-shared/csc359/ascent/Modulefiles/Core
@@ -10,7 +11,7 @@ module load exasgd-base
 module load gcc-ext/7.4.0
 module load spectrum-mpi-ext
 module load openblas
-module load magma-2.5.4-gcc-7.4.0-vjotnd3
+module load magma-2.5.4-gcc-7.4.0-xp7meag
 module load metis
 module load mpfr
 module load suitesparse
@@ -21,7 +22,7 @@ module load valgrind/3.14.0
 export MY_RAJA_DIR=$RAJA_ROOT
 export MY_UMPIRE_DIR=$UMPIRE_ROOT
 export MY_METIS_DIR=$OLCF_METIS_ROOT
-export MY_HIOP_MAGMA_DIR=$MAGMA_ROOT
+export MY_HIOP_MAGMA_DIR=$PROJWORK/csc359/proj-shared/src/spack/opt/spack/linux-rhel7-power9le/gcc-7.4.0/magma-2.5.4-xp7meagq5wsg4ue76jo3oaucw3xledmo/
 export MY_UMFPACK_DIR=$SUITESPARSE_ROOT
 export MY_NVCC_ARCH="sm_70"
 
