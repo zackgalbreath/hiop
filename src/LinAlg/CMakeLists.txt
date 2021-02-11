@@ -66,7 +66,10 @@ target_link_libraries(hiopLinAlg PUBLIC hiop_math)
 
 if(HIOP_USE_RAJA)
   if(HIOP_USE_GPU AND HIOP_USE_HIP)
-    target_link_libraries(hiopLinAlg PUBLIC umpire RAJA)
+    target_link_libraries(hiopLinAlg
+      PUBLIC umpire RAJA
+      PRIVATE hip::device
+      )
   else()
     target_link_libraries(hiopLinAlg PUBLIC umpire RAJA OpenMP::OpenMP_CXX)
   endif()
