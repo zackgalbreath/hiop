@@ -40,7 +40,10 @@ endif()
 # for now we rely on MAGMA for GPUs computations
 include(FindHiopMagma)
 target_link_libraries(Magma    INTERFACE Hipblas)
-target_link_libraries(hiop_hip INTERFACE Magma)
+
+# Find hip cmake targets
+find_package(hip REQUIRED)
+target_link_libraries(hiop_hip INTERFACE hip::device Magma)
 
 message(STATUS "HiOp support for GPUs is on")
 get_target_property(hip_includes hiop_hip INTERFACE_INCLUDE_DIRECTORIES)
