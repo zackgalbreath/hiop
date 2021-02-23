@@ -481,6 +481,7 @@ private:
   hiopMatrix *Hess_scaled;
   hiopMatrix *Hess_unscaled;
 #endif // 0
+};
 
 class hiopBoundsRelaxer : public hiopNlpTransformation
 {

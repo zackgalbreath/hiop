@@ -1603,7 +1603,8 @@ hiopSolveStatus hiopAlgFilterIPMNewton::run()
 	}
 	iniStep=false;
 	bret = it_trial->takeStep_primals(*it_curr, *dir, _alpha_primal, _alpha_dual); assert(bret);
-	num_adjusted_bounds = it_trial->adjust_small_slacks(nlp->get_xl(), nlp->get_xu(), nlp->get_dl(), nlp->get_du());
+	num_adjusted_bounds = it_trial->adjust_small_slacks(*it_curr, nlp->get_xl(), nlp->get_xu(), 
+                                                     nlp->get_dl(), nlp->get_du(),_mu);
 	if(num_adjusted_bounds > 0) {
     nlp->log->printf(hovWarning, "%d slacks are too small. Adjust corresponding variable bounds!", num_adjusted_bounds);
     num_adjusted_bounds = 0;

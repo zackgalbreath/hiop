@@ -92,7 +92,8 @@ public:
                                   const hiopVector& xl, 
                                   const hiopVector& xu, 
                                   const hiopVector& dl, 
-                                  const hiopVector& xu);
+                                  const hiopVector& du,
+                                  const double& mu);
   virtual int adjust_small_slacks(hiopVector& slack, 
                                   const hiopVector& bound, 
                                   const hiopVector& slack_dual, 
