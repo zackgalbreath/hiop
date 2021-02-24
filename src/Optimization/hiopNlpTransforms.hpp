@@ -360,6 +360,8 @@ public:
   inline long long n_post_local()  { return n_vars_local; }
   inline long long n_pre_local()  { return n_vars_local; }
 
+  inline void apply_inv_to_x(hiopVector& x_in, hiopVector& x_out){}
+
   /// @brief return the scaling fact for objective
   inline double get_obj_scale() const {return scale_factor_obj;}
 
@@ -497,6 +499,8 @@ public:
   inline long long n_post_local()  { return n_vars_local; }
   inline long long n_pre_local()  { return n_vars_local; }
   inline bool setup() { return true; }
+  
+  inline void apply_inv_to_x(hiopVector& x_in, hiopVector& x_out){}
 
   void relax(const double& bound_relax_perturb,
              hiopVector& xl,
@@ -531,6 +535,7 @@ public:
   inline void setUserNlpNumVars(const long long& n_vars) { n_vars_usernlp = n_vars; }
   inline void setUserNlpNumLocalVars(const long long& n_vars) { n_vars_local_usernlp = n_vars; }
   inline void append(hiopNlpTransformation* t) { list_trans_.push_back(t); }
+  inline void appstart(hiopNlpTransformation* t) { list_trans_.push_front(t); }
   inline void clear() { 
     std::list<hiopNlpTransformation*>::iterator it;
     for(it=list_trans_.begin(); it!=list_trans_.end(); it++)

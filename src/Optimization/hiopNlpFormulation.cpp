@@ -340,7 +340,7 @@ bool hiopNlpFormulation::finalizeInitialization()
       n_bnds_upp_local -= nfixed_vars_local;
       n_bnds_lu        -= nfixed_vars_local;
       
-      nlp_transformations.append(fixedVarsRemover);
+      nlp_transformations.appstart(fixedVarsRemover);
     } else {
       if(options->GetString("fixed_var")=="relax") {
 	log->printf(hovWarning, "Fixed variables will be relaxed internally.\n");
@@ -349,7 +349,7 @@ bool hiopNlpFormulation::finalizeInitialization()
 	fixedVarsRelaxer->setup();
 	fixedVarsRelaxer->relax(options->GetNumeric("fixed_var_tolerance"),
 				options->GetNumeric("fixed_var_perturb"), *xl, *xu);
-	nlp_transformations.append(fixedVarsRelaxer);
+	nlp_transformations.appstart(fixedVarsRelaxer);
 
       } else {
 	log->printf(hovError,  
@@ -463,7 +463,7 @@ bool hiopNlpFormulation::finalizeInitialization()
     auto* relax_bounds = new hiopBoundsRelaxer(*xl, *xu, *dl, *du);
     relax_bounds->setup();
     relax_bounds->relax(options->GetNumeric("bound_relax_perturb"), *xl, *xu, *dl, *du);
-    nlp_transformations.append(relax_bounds);
+    nlp_transformations.appstart(relax_bounds);
   }
 
   // Copy data from host mirror to the memory space
@@ -514,7 +514,7 @@ bool hiopNlpFormulation::apply_scaling(hiopVector& c, hiopVector& d, hiopVector&
   c_rhs->copyToDev();
   dl->copyToDev();  du->copyToDev();
 
-  nlp_transformations.append(nlp_scaling);
+  nlp_transformations.appstart(nlp_scaling);
   
   return true;
 }
