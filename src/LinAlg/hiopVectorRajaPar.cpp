@@ -1044,6 +1044,27 @@ void  hiopVectorRajaPar::addConstant_w_patternSelect(double c, const hiopVector&
 }
 
 /// Find minimum vector element
+double hiopVectorRajaPar::min() const
+{
+  double ret_val = std::numeric_limits<double>::max();
+  for(int i=0; i<n_local_; i++) {
+    ret_val = (ret_val < data_[i]) ? ret_val : data_[i];
+  }
+  RAJA::forall< hiop_raja_exec >( RAJA::RangeSegment(0, n_local_),
+    RAJA_LAMBDA(RAJA::Index_type i)
+    {
+      assert(id[i] == one || id[i] == zero);
+      data[i] += id[i]*c;
+    });
+#ifdef HIOP_USE_MPI
+  int ret_val_g;
+  int ierr=MPI_Allreduce(&ret_val, &ret_val_g, 1, MPI_DOUBLE, MPI_MIN, comm_); assert(MPI_SUCCESS==ierr);
+  ret_val = ret_val_g;
+#endif
+  return ret_val;
+}
+
+/// Find minimum vector element
 void hiopVectorRajaPar::min( double& /* m */, int& /* index */) const
 {
   assert(false && "not implemented");
