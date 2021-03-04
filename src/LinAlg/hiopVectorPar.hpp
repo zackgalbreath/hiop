@@ -136,6 +136,7 @@ public:
   virtual void addConstant( double c );
   virtual void addConstant_w_patternSelect(double c, const hiopVector& ix);
   virtual double min() const;
+  virtual double min_w_pattern(const hiopVector& select) const;  
   virtual void min( double& m, int& index ) const;
   virtual void negate();
   virtual void invert();

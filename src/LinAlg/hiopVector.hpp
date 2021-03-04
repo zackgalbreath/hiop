@@ -198,6 +198,7 @@ public:
   virtual int allPositive_w_patternSelect(const hiopVector& w) = 0;
   /// @brief Return the minimum value in this vector
   virtual double min() const = 0;
+  virtual double min_w_pattern(const hiopVector& select) const = 0;
   /// @brief Return the minimum value in this vector, and the index at which it occurs.
   virtual void min( double& m, int& index ) const = 0;
   /// @brief Project the vector into the bounds, used for shifting the ini pt in the bounds

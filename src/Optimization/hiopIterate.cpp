@@ -400,7 +400,7 @@ int hiopIterate::adjust_small_slacks(hiopVector& slack,
     double small_val = std::numeric_limits<double>::epsilon()* fmin(1., mu);
     double scale_fact = pow(std::numeric_limits<double>::epsilon(), 0.75);
 
-    slack_min = slack.min();
+    slack_min = slack.min_w_pattern(select);
     if(slack_min < small_val) {
       hiopVector* new_s = slack.new_copy();;
       hiopVector* vec1 = slack.new_copy();;

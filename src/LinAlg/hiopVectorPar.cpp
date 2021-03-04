@@ -570,6 +570,27 @@ double hiopVectorPar::min() const
   return ret_val;
 }
 
+double hiopVectorPar::min_w_pattern(const hiopVector& select) const
+{
+  const hiopVectorPar& ix = dynamic_cast<const hiopVectorPar&>(select);
+  assert(this->n_local_ == ix.n_local_);
+  
+  double ret_val = std::numeric_limits<double>::max();
+  const double* ix_vec = ix.data_;
+  for(int i=0; i<n_local_; i++) {
+    if(ix_vec[i]==1.)
+    {
+      ret_val = (ret_val < data_[i]) ? ret_val : data_[i];
+    }   
+  }
+#ifdef HIOP_USE_MPI
+  int ret_val_g;
+  int ierr=MPI_Allreduce(&ret_val, &ret_val_g, 1, MPI_DOUBLE, MPI_MIN, comm_); assert(MPI_SUCCESS==ierr);
+  ret_val = ret_val_g;
+#endif
+  return ret_val;
+}
+
 void hiopVectorPar::min( double& m, int& index ) const
 {
   assert(false && "not implemented");

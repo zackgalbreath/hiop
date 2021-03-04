@@ -1046,18 +1046,47 @@ void  hiopVectorRajaPar::addConstant_w_patternSelect(double c, const hiopVector&
 /// Find minimum vector element
 double hiopVectorRajaPar::min() const
 {
-  double ret_val = std::numeric_limits<double>::max();
-  for(int i=0; i<n_local_; i++) {
-    ret_val = (ret_val < data_[i]) ? ret_val : data_[i];
-  }
-  RAJA::forall< hiop_raja_exec >( RAJA::RangeSegment(0, n_local_),
+  double* data = data_dev_;
+  RAJA::ReduceMin< hiop_raja_reduce, double > minimum(std::numeric_limits<double>::max());
+  RAJA::forall< hiop_raja_exec >(
+    RAJA::RangeSegment(0, n_local_),
+		RAJA_LAMBDA(RAJA::Index_type i)
+    {
+      minimum.min(data[i]);
+		}
+  );
+  double ret_val = minimum.get();
+
+#ifdef HIOP_USE_MPI
+  double ret_val_g;
+  int ierr=MPI_Allreduce(&ret_val, &ret_val_g, 1, MPI_DOUBLE, MPI_MIN, comm_); assert(MPI_SUCCESS==ierr);
+  ret_val = ret_val_g;
+#endif
+  return ret_val;
+}
+
+/// Find minimum vector element
+double hiopVectorRajaPar::min_w_pattern(const hiopVector& select) const
+{
+  const hiopVectorRajaPar& sel = dynamic_cast<const hiopVectorRajaPar&>(select);
+  assert(this->n_local_ == sel.n_local_);
+  double* data = data_dev_;
+  const double* id = sel.local_data_const();
+  
+  RAJA::ReduceMin< hiop_raja_reduce, double > minimum(std::numeric_limits<double>::max());
+  RAJA::forall< hiop_raja_exec >(
+    RAJA::RangeSegment(0, n_local_),
     RAJA_LAMBDA(RAJA::Index_type i)
     {
-      assert(id[i] == one || id[i] == zero);
-      data[i] += id[i]*c;
-    });
+      if(id[i] == one) {
+        minimum.min(data[i]);
+      }
+    }
+  );
+  double ret_val = minimum.get();
+
 #ifdef HIOP_USE_MPI
-  int ret_val_g;
+  double ret_val_g;
   int ierr=MPI_Allreduce(&ret_val, &ret_val_g, 1, MPI_DOUBLE, MPI_MIN, comm_); assert(MPI_SUCCESS==ierr);
   ret_val = ret_val_g;
 #endif

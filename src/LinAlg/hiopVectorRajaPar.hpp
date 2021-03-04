@@ -125,6 +125,7 @@ public:
   virtual void addConstant_w_patternSelect(double c, const hiopVector& ix);
   virtual double min() const;
   virtual void min( double& m, int& index ) const;
+  virtual double min_w_pattern(const hiopVector& select) const;  
   virtual void negate();
   virtual void invert();
   virtual double logBarrier_local(const hiopVector& select) const;
